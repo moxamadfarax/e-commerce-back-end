@@ -1,28 +1,89 @@
-const router = require('express').Router();
-const { Category, Product } = require('../../models');
+const express = require("express");
+const router = express.Router();
+const { Category, Product } = require("../../models");
 
-// The `/api/categories` endpoint
-
-router.get('/', (req, res) => {
-  // find all categories
-  // be sure to include its associated Products
+// Get all categories
+router.get("/", (req, res) => {
+  Category.findAll({
+    include: [{ model: Product }],
+  })
+    .then((data) => res.json(data))
+    .catch((err) => res.json(err));
 });
 
-router.get('/:id', (req, res) => {
-  // find one category by its `id` value
-  // be sure to include its associated Products
+// Get category by ID
+router.get("/:id", (req, res) => {
+  Category.findAll({
+    include: [{ model: Product }],
+    where: { id: req.params.id },
+  })
+    .then((data) => {
+      if (!data.length) {
+        return res
+          .status(404)
+          .json({ message: `No category found with ID ${req.params.id}` });
+      }
+      res.json(data);
+    })
+    .catch((err) => res.json(err));
 });
 
-router.post('/', (req, res) => {
-  // create a new category
+// Create a new category
+router.post("/", (req, res) => {
+  if (!req.body.category_name) {
+    return res
+      .status(404)
+      .json({ message: "No category name found in the request body" });
+  }
+  Category.create({
+    category_name: req.body.category_name,
+  })
+    .then((newCategory) => res.json(newCategory))
+    .catch((err) => res.json(err));
 });
 
-router.put('/:id', (req, res) => {
-  // update a category by its `id` value
+// Update a category by ID
+router.put("/:id", (req, res) => {
+  if (!req.body.category_name) {
+    return res
+      .status(404)
+      .json({ message: "No category name found in the request body" });
+  }
+  Category.update(
+    {
+      category_name: req.body.category_name,
+    },
+    {
+      where: {
+        id: req.params.id,
+      },
+    }
+  )
+    .then((data) => {
+      if (!data) {
+        return res
+          .status(404)
+          .json({ message: `No category found with ID ${req.params.id}` });
+      }
+      res.json({ message: "Category updated successfully" });
+    })
+    .catch((err) => res.json(err));
 });
 
-router.delete('/:id', (req, res) => {
-  // delete a category by its `id` value
+// Delete a category by ID
+router.delete("/:id", (req, res) => {
+  Category.destroy({
+    where: { id: req.params.id },
+  })
+    .then((deletedCategory) => {
+      if (!deletedCategory) {
+        return res
+          .status(404)
+          .json({ message: `No category found with ID ${req.params.id}` });
+      }
+      res.json({ message: `Category with ID ${req.params.id} deleted` });
+    })
+    .catch((err) => res.json(err));
 });
 
 module.exports = router;
