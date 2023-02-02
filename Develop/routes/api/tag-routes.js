@@ -1,28 +1,19 @@
-const router = require('express').Router();
-const { Tag, Product, ProductTag } = require('../../models');
+const router = require("express").Router();
+const { Tag, Product, ProductTag } = require("../../models");
 
-// The `/api/tags` endpoint
+// Route to get all tags.
+router.get("/", (req, res) => {});
 
-router.get('/', (req, res) => {
-  // find all tags
-  // be sure to include its associated Product data
-});
+// Route to return tag by it's id.
+router.get("/:id", (req, res) => {});
 
-router.get('/:id', (req, res) => {
-  // find a single tag by its `id`
-  // be sure to include its associated Product data
-});
+// Route to create a new tag.
+router.post("/", (req, res) => {});
 
-router.post('/', (req, res) => {
-  // create a new tag
-});
+// Route to update tag by it's id.
+router.put("/:id", (req, res) => {});
 
-router.put('/:id', (req, res) => {
-  // update a tag's name by its `id` value
-});
-
-router.delete('/:id', (req, res) => {
-  // delete on tag by its `id` value
-});
+// Route to delete tag by it's id.
+router.delete("/:id", (req, res) => {});
 
 module.exports = router;
