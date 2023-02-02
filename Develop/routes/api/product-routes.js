@@ -2,7 +2,17 @@ const router = require("express").Router();
 const { Product, Category, Tag, ProductTag } = require("../../models");
 
 // Route to retrieve all products with associated product tags, tags, and categories.
-router.get("/", async (req, res) => {});
+router.get("/", async (req, res) => {
+  try {
+    const products = await Product.findAll({
+      include: [{ model: ProductTag }, { model: Tag }, { model: Category }],
+    });
+    res.json(products);
+  } catch (error) {
+    console.error(error);
+    res.status(500).send("Server error");
+  }
+});
 
 // Route to get a product by it's id.
 router.get("/:id", (req, res) => {});
