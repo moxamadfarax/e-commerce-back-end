@@ -64,6 +64,22 @@ router.put("/:id", (req, res) => {
 });
 
 // Route to delete tag by it's id.
-router.delete("/:id", (req, res) => {});
+router.delete("/:id", (req, res) => {
+  Tag.destroy({
+    where: { id: req.params.id },
+  })
+    .then((deletedTag) => {
+      if (deletedTag === 0) {
+        res.status(404).json({
+          message: `Could not delete row with id of : ${req.params.id}. Please check your Tag ID and try again!`,
+        });
+        return;
+      }
+      res.json({
+        message: `${deletedTag} has been successfuly deleted.`,
+      });
+    })
+    .catch((err) => res.json(err));
+});
 
 module.exports = router;
