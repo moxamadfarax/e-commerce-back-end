@@ -14,7 +14,24 @@ router.get("/", (req, res) => {
 router.get("/:id", (req, res) => {});
 
 // Route to create a new tag.
-router.post("/", (req, res) => {});
+router.post("/", (req, res) => {
+  // Validation that the tag_name was passed in the body and if not will notify user.
+  if (req.body.tag_name === undefined) {
+    res.status(404).json({
+      message: `Could not find requested tag name. Please try again.`,
+    });
+    return;
+  }
+  Tag.create({
+    tag_name: req.body.tag_name,
+  })
+    .then((newTag) => {
+      res.json(newTag);
+    })
+    .catch((err) => {
+      res.json(err);
+    });
+});
 
 // Route to update tag by it's id.
 router.put("/:id", (req, res) => {});
