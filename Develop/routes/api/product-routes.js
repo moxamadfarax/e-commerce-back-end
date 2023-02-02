@@ -34,7 +34,36 @@ router.get("/:id", (req, res) => {
 });
 
 // Route to create a new product.
-router.post("/", (req, res) => {});
+router.post("/", (req, res) => {
+  if (!req.body.product_name || !req.body.price) {
+    return res
+      .status(400)
+      .json({ message: "Both product_name and price are required fields." });
+  }
+  Product.create({
+    product_name: req.body.product_name,
+    price: req.body.price,
+    stock: req.body.stock || 0,
+    category_id: req.body.category_id,
+    tagIds: req.body.tagIds || [],
+  })
+    .then((product) => {
+      if (req.body.tagIds && req.body.tagIds.length) {
+        const productTagAssociations = req.body.tagIds.map((tag_id) => ({
+          product_id: product.id,
+          tag_id,
+        }));
+        return ProductTag.bulkCreate(productTagAssociations);
+      }
+      return res.status(201).json(product);
+    })
+    .then((productTagIds) => {
+      res.status(201).json(productTagIds);
+    })
+    .catch((error) => {
+      res.status(500).json({ message: error.message });
+    });
+});
 
 // Route to update a product by it's id.
 router.put("/:id", (req, res) => {});
