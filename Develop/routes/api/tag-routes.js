@@ -2,7 +2,13 @@ const router = require("express").Router();
 const { Tag, Product, ProductTag } = require("../../models");
 
 // Route to get all tags.
-router.get("/", (req, res) => {});
+router.get("/", (req, res) => {
+  Tag.findAll({
+    include: [{ model: ProductTag }, { model: Product }],
+  }).then((data) => {
+    res.json(data);
+  });
+});
 
 // Route to return tag by it's id.
 router.get("/:id", (req, res) => {});
