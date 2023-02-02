@@ -4,7 +4,7 @@ const { Product, Category, Tag, ProductTag } = require("../../models");
 // Route to retrieve all products with associated product tags, tags, and categories.
 router.get("/", async (req, res) => {
   try {
-    const products = await Product.findAll({
+    let products = await Product.findAll({
       include: [{ model: ProductTag }, { model: Tag }, { model: Category }],
     });
     res.json(products);
@@ -65,9 +65,10 @@ router.post("/", (req, res) => {
     });
 });
 
+// Route to update a product by it's id.
 router.put("/:id", (req, res) => {
-  const { product_name, price, stock, category_id, tagIds } = req.body;
-  const productId = req.params.id;
+  let { product_name, price, stock, category_id, tagIds } = req.body;
+  let productId = req.params.id;
 
   Product.update(
     {
@@ -88,20 +89,16 @@ router.put("/:id", (req, res) => {
         return;
       }
       res.status(200).json({ message: `Successfully updated ${product}.` });
-
       return ProductTag.findAll({ where: { product_id: productId } });
     })
     .then((existingProductTags) => {
-      const existingTagIds = existingProductTags.map(({ tag_id }) => tag_id);
-
-      const newTagIds = tagIds.filter(
+      let newTagIds = tagIds.filter(
         (tag_id) => !existingTagIds.includes(tag_id)
       );
-
-      const tagsToRemove = existingProductTags.filter(
+      let tagsToRemove = existingProductTags.filter(
         ({ tag_id }) => !tagIds.includes(tag_id)
       );
-      const tagsToRemoveIds = tagsToRemove.map(({ id }) => id);
+      let tagsToRemoveIds = tagsToRemove.map(({ id }) => id);
 
       return Promise.all([
         ProductTag.destroy({ where: { id: tagsToRemoveIds } }),
@@ -122,6 +119,21 @@ router.put("/:id", (req, res) => {
 });
 
 // Route to delete product by it's id.
-router.delete("/:id", (req, res) => {});
+router.delete("/:id", (req, res) => {
+  Product.destroy({
+    where: { id: req.params.id },
+  })
+    .then((deletedProduct) => {
+      if (deletedProduct === 0) {
+        return res.status(404).json({
+          message: `No product found with id ${req.params.id}. Please check your id and try again.`,
+        });
+      }
+      return res.json({
+        message: `${deletedProduct} product(s) with id ${req.params.id} have been deleted.`,
+      });
+    })
+    .catch((error) => res.json(error));
+});
 
 module.exports = router;
