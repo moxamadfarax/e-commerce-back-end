@@ -29,7 +29,18 @@ router.get("/:id", (req, res) => {
 });
 
 // Route to create a  new category.
-router.post("/", (req, res) => {});
+router.post("/", (req, res) => {
+  if (!req.body.category_name) {
+    return res
+      .status(404)
+      .json({ message: "No category name found in the request body" });
+  }
+  Category.create({
+    category_name: req.body.category_name,
+  })
+    .then((newCategory) => res.json(newCategory))
+    .catch((err) => res.json(err));
+});
 
 // Route to update a category by it's ID
 router.put("/:id", (req, res) => {});
