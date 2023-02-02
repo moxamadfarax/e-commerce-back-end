@@ -65,8 +65,61 @@ router.post("/", (req, res) => {
     });
 });
 
-// Route to update a product by it's id.
-router.put("/:id", (req, res) => {});
+router.put("/:id", (req, res) => {
+  const { product_name, price, stock, category_id, tagIds } = req.body;
+  const productId = req.params.id;
+
+  Product.update(
+    {
+      product_name,
+      price,
+      stock,
+      category_id,
+      tagIds,
+    },
+    { where: { id: productId } }
+  )
+    .then((product) => {
+      if (product == 0) {
+        res.status(404).json({
+          message:
+            "No matching product found. Please provide a valid product ID and try again.",
+        });
+        return;
+      }
+      res.status(200).json({ message: `Successfully updated ${product}.` });
+
+      return ProductTag.findAll({ where: { product_id: productId } });
+    })
+    .then((existingProductTags) => {
+      const existingTagIds = existingProductTags.map(({ tag_id }) => tag_id);
+
+      const newTagIds = tagIds.filter(
+        (tag_id) => !existingTagIds.includes(tag_id)
+      );
+
+      const tagsToRemove = existingProductTags.filter(
+        ({ tag_id }) => !tagIds.includes(tag_id)
+      );
+      const tagsToRemoveIds = tagsToRemove.map(({ id }) => id);
+
+      return Promise.all([
+        ProductTag.destroy({ where: { id: tagsToRemoveIds } }),
+        ProductTag.bulkCreate(
+          newTagIds.map((tag_id) => ({ product_id: productId, tag_id }))
+        ),
+      ]);
+    })
+    .then((updatedProductTags) => {
+      res.json(updatedProductTags);
+    })
+    .catch((err) => {
+      console.error(err);
+      res
+        .status(400)
+        .json({ message: "An error occurred while updating the product." });
+    });
+});
 
 // Route to delete product by it's id.
 router.delete("/:id", (req, res) => {});
