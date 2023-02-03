@@ -1,85 +1,92 @@
 const router = require("express").Router();
 const { Tag, Product, ProductTag } = require("../../models");
 
-// Route to get all tags.
-router.get("/", (req, res) => {
-  Tag.findAll({
-    include: [{ model: ProductTag }, { model: Product }],
-  }).then((data) => {
-    res.json(data);
-  });
+// The `/api/tags` endpoint
+
+// Router to get all tags.
+router.get("/", async (req, res) => {
+  try {
+    // find all tags with associated product data
+    const tagData = await Tag.findAll({
+      include: [{ model: Product }],
+    });
+
+    res.status(200).json(tagData);
+  } catch (err) {
+    res.status(500).json(err);
+  }
 });
 
-// Route to return tag by it's id.
-router.get("/:id", (req, res) => {});
-
-// Route to create a new tag.
-router.post("/", (req, res) => {
-  // Validation that the tag_name was passed in the body and if not will notify user.
-  if (req.body.tag_name === undefined) {
-    res.status(404).json({
-      message: `Could not find requested tag name. Please try again.`,
+// Router to get tag by id.
+router.get("/:id", async (req, res) => {
+  try {
+    // find the tag by its id with associated product data
+    const tagData = await Tag.findByPk(req.params.id, {
+      include: [{ model: Product }],
     });
-    return;
+    if (!tagData) {
+      res.status(404).json({ message: "Tag not found!" });
+      return;
+    }
+    res.status(200).json(tagData);
+  } catch (err) {
+    res.status(500).json(err);
   }
-  Tag.create({
-    tag_name: req.body.tag_name,
-  })
-    .then((newTag) => {
-      res.json(newTag);
-    })
-    .catch((err) => {
-      res.json(err);
-    });
 });
 
-// Route to update tag by it's id.
-router.put("/:id", (req, res) => {
-  if (req.body.tag_name === undefined) {
-    res.status(404).json({
-      message: `Could not find requested tag name. Please try again.`,
-    });
-    return;
+// Router to create a new tag.
+router.post("/", async (req, res) => {
+  try {
+    // create a new tag with data from the request body
+    const tagData = await Tag.create(req.body);
+    res.status(200).json(tagData);
+  } catch (err) {
+    res.status(500).json(err);
   }
-  Tag.update(
-    {
-      tag_name: req.body.tag_name,
-    },
-    {
+});
+
+// Router to update tag by id.
+router.put("/:id", async (req, res) => {
+  try {
+    // update the tag's name with data from the request body
+    const tagData = await Tag.update(
+      {
+        tag_name: req.body.tag_name,
+      },
+      {
+        where: {
+          id: req.params.id,
+        },
+      }
+    );
+
+    if (!tagData[0]) {
+      res.status(404).json({ message: "Tag not found!" });
+      return;
+    }
+
+    res.status(200).json(tagData);
+  } catch (err) {
+    res.status(500).json(err);
+  }
+});
+
+// Router to delete tag by id.
+router.delete("/:id", async (req, res) => {
+  try {
+    const tagData = await Tag.destroy({
       where: {
         id: req.params.id,
       },
+    });
+    if (!tagData) {
+      res.status(404).json({ message: "Tag not found!" });
+      return;
     }
-  )
-    .then((updatedTag) => {
-      if (updatedTag == 0) {
-        res.status(404).json({
-          message: `No records were modified with this put request for id ${req.params.id}. Please check your id, and updated name and try again!`,
-        });
-        return;
-      }
-      res.json({ message: "Tag Name has been updated" });
-    })
-    .catch((err) => res.json(err));
-});
-
-// Route to delete tag by it's id.
-router.delete("/:id", (req, res) => {
-  Tag.destroy({
-    where: { id: req.params.id },
-  })
-    .then((deletedTag) => {
-      if (deletedTag === 0) {
-        res.status(404).json({
-          message: `Could not delete row with id of : ${req.params.id}. Please check your Tag ID and try again!`,
-        });
-        return;
-      }
-      res.json({
-        message: `${deletedTag} has been successfuly deleted.`,
-      });
-    })
-    .catch((err) => res.json(err));
+    res.status(200).json({ message: "Tag deleted." });
+  } catch (err) {
+    res.status(500).json(err);
+  }
 });
 
 module.exports = router;
