@@ -48,13 +48,11 @@ router.put("/:id", async (req, res) => {
       res.status(400).json({ message: "Request body is missing" });
       return;
     }
-
     // Perform additional validation if necessary
     if (!req.body.category_name) {
       res.status(400).json({ message: "category_name is required" });
       return;
     }
-
     const [updatedRows, updatedCategory] = await Category.update(req.body, {
       where: { id: req.params.id },
       returning: true,
